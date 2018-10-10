@@ -1,42 +1,35 @@
 <?php
 
-if (ob_get_level())
-    ob_end_clean();
+require_once('DbModel.php');
+require_once('function.php');
 
-//$file_url = 'https://archive.org/download/apkmodeio/14182-MORTAL-KOMBAT-X-v1-19-0-cache-Tegra.zip';
-$file_url = 'https://apkmemory.com/wl/?id=v7VB7KqqWPOwCxtUApJV0V2NNHCoPWTc';
-$filename = basename($file_url);
+if (isset($_GET['id'])) {
 
-$response_headers = array_change_key_case(get_headers($file_url, TRUE));
+    if (ob_get_level())
+        ob_end_clean();
 
-// Get data size
-$data_size = 0;
-if (isset($response_headers['content-length'])) {
-    $data_size = $response_headers['content-length'];
-}
+    $dbModel = new DbModel();
+    $result = $dbModel->get_url($_GET['id']);
 
-// Get File Name
-if (isset($response_headers["content-disposition"])) {
-    // this catches filenames between Quotes
-    if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
-        $filename = $matches[1];
+//    $file_url = 'https://archive.org/download/apkmodeio/14182-MORTAL-KOMBAT-X-v1-19-0-cache-Tegra.zip';
+    
+    if (!empty($result)) {
+        
+        if ($result['type'] == 1) {     // Direct Link
+            $file_url = $result['url'];
+            $file_url = urldecode($file_url);
+            download_direct_link($file_url);
+        } else {
+            $file_url = $result['url'];
+            $file_url = urldecode($file_url);
+            download_google_drive_link($file_url);
+        }
+        
+    } else {
+        echo "Can't find your file on the system.";
     }
-    // if filename is not quoted, we take all until the next space
-    else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
-        $filename = $matches[1];
-    }
+} else {
+    echo "Can't find your file on the system.";
 }
 
-header('Content-Type: application/octet-stream');
-header("Content-Transfer-Encoding: Binary");
-header("Content-disposition: attachment; filename=\"" . $filename . "\"");
-header('Content-Transfer-Encoding: chunked'); //changed to chunked
-header('Expires: 0');
-if ($data_size) {
-    header("Content-length: $data_size");
-}
-header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-header('Pragma: public');
-
-readfile($file_url); // do the double-download-dance (dirty but worky)
 ?>
