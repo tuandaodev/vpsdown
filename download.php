@@ -24,7 +24,6 @@ if (!$check_source) {
         $result = $dbModel->get_url($_GET['id']);
         
         if (!empty($result)) {
-            
             if ($result['type'] == 1) {     // Direct Link
                 $file_url = $result['url'];
                 $file_url = urldecode($file_url);
