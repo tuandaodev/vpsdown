@@ -23,11 +23,6 @@
     $dbModel = new DbModel();
     $list = $dbModel->get_all_url();
     
-//    echo "<pre>";
-//    print_r($list);
-//    echo "</pre>";
-//    exit;
-    
     ?>
     <body>
         <nav class="navbar navbar-default">
@@ -75,15 +70,17 @@
                                                         case 2:
                                                             echo "Google Drive";
                                                             break;
-                                                        case 3:
+                                                        default:
                                                             echo "Unknown";
                                                             break;
                                                     }
                                                 ?></td>
-                                                <td><?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?></td>
+                                                <td><a href='<?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?>'><?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?></a></td>
                                                 <td><?php echo urldecode($url['url']) ?></td>
                                                 <td><?php echo date('H:i:s d-m-Y', $url['created']) ?></td>
-                                                <td class="text-center"><button type="button" class="btn btn-danger" title="Delete this URL" onclick="deleteURL('<?php echo $url['id'] ?>')">Delete</button></td>
+                                                <td class="text-center">
+                                                    <a href="edit.php?id=<?php echo $url['id'] ?>" class="btn btn-xs btn-primary" title="Edit this URL">Edit</a><button type="button" class="btn btn-xs btn-danger" title="Delete this URL" onclick="deleteURL('<?php echo $url['id'] ?>')">Delete</button>
+                                                </td>
                                             </tr>
                                             <?php } ?>
                                     </tbody>
@@ -99,10 +96,15 @@
                 </div>
             </footer>
         </div>
-
+        
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css">
         <link rel="stylesheet" href="css/custom.css">
+        <style>
+            table.table-bordered.dataTable tbody td {
+                word-break: break-word;
+            }
+        </style>
         <script src="//code.jquery.com/jquery-3.3.1.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
         <script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>

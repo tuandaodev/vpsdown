@@ -34,6 +34,16 @@ if (isset($_POST['action'])) {
                 $return['status'] = "1";
             }
             break;
+        case 'update_link':
+            $url_id = $_POST['url_id'];
+            $url = $_POST['url'];
+            $url = urlencode($url);
+            $type = $_POST['type'];
+            $result = $dbModel->update_url($url_id, $url, $type);
+            if ($result) {
+                $return['status'] = "1";
+            }
+            break;
     }
 }
 

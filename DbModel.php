@@ -57,7 +57,24 @@ class DbModel {
         } else {
             return [];
         }
-        
+    }
+    
+    public function get_url_by_id($id) {
+		
+        $query = "SELECT * FROM url WHERE id = '$id'";
+		
+        $result = mysqli_query($this->link, $query);
+		
+        if ($result) {
+            $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            if ($return) {
+                return $return[0];
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
     }
     
     public function insert_url($uid, $url, $type = 1) {
@@ -99,6 +116,16 @@ class DbModel {
         $result = mysqli_query($this->link, $query);
         return $result;
         
+    }
+    
+    public function update_url($id, $url, $type) {
+        $query = "  UPDATE url 
+                    SET url = '$url', type = $type
+                    WHERE id = $id";
+        
+        $result = mysqli_query($this->link, $query);
+
+        return $result;
     }
 }
 

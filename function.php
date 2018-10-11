@@ -4,10 +4,18 @@ include_once 'config.php';
 
 function download_direct_link($file_url) {
     
+    if (ob_get_level())
+            ob_end_clean();
+    
     $filename = basename($file_url);
 
     $response_headers = array_change_key_case(get_headers($file_url, TRUE));
-
+    
+    if (isset($response_headers['server']) && $response_headers['server'] == 'cloudflare') {
+        header("Location: $file_url");
+        exit;
+    }
+    
     // Get data size
     $data_size = 0;
     if (isset($response_headers['content-length'])) {
@@ -43,6 +51,8 @@ function download_direct_link($file_url) {
 
 function download_google_drive_link($google_url) {
     
+    if (ob_get_level())
+            ob_end_clean();
     
     $matches = array();
     preg_match("/.*file\/d\/([^ ]+)\/view/", $google_url, $matches);

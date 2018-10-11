@@ -3,33 +3,43 @@
 require_once('DbModel.php');
 require_once('function.php');
 
-if (isset($_GET['id'])) {
+$accept_source = array('apkhide.com', 'moddroid.com');
 
-    if (ob_get_level())
-        ob_end_clean();
+$check_source = false;
 
-    $dbModel = new DbModel();
-    $result = $dbModel->get_url($_GET['id']);
+foreach ($accept_source as $source) {
+    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) != false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
+        $check_source = true;
+        break;
+    }
+}
 
-//    $file_url = 'https://archive.org/download/apkmodeio/14182-MORTAL-KOMBAT-X-v1-19-0-cache-Tegra.zip';
-    
-    if (!empty($result)) {
+if (!$check_source) {
+    header('Location: https://moddroid.com');
+    exit;
+} else {
+    if (isset($_GET['id'])) {
+
+        $dbModel = new DbModel();
+        $result = $dbModel->get_url($_GET['id']);
         
-        if ($result['type'] == 1) {     // Direct Link
-            $file_url = $result['url'];
-            $file_url = urldecode($file_url);
-            download_direct_link($file_url);
+        if (!empty($result)) {
+            
+            if ($result['type'] == 1) {     // Direct Link
+                $file_url = $result['url'];
+                $file_url = urldecode($file_url);
+                download_direct_link($file_url);
+            } else {
+                $file_url = $result['url'];
+                $file_url = urldecode($file_url);
+                download_google_drive_link($file_url);
+            }
         } else {
-            $file_url = $result['url'];
-            $file_url = urldecode($file_url);
-            download_google_drive_link($file_url);
+            echo "Can't find your file on the system.";
         }
-        
     } else {
         echo "Can't find your file on the system.";
     }
-} else {
-    echo "Can't find your file on the system.";
 }
 
 ?>
