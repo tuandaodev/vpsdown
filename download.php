@@ -15,7 +15,7 @@ foreach ($accept_source as $source) {
 }
 
 if (!$check_source) {
-    header('Location: https://moddroid.com');
+    header('Location: ' . DOMAIN . 'download.html');
     exit;
 } else {
     if (isset($_GET['id'])) {
