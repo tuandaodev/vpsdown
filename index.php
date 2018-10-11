@@ -7,6 +7,16 @@
         <link rel="shortcut icon" href="favicon.ico">
         <title>URL Shortener and Hider</title>
     </head>
+    <?php 
+    
+    session_start();
+    if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
+        
+    } else {
+        header('Location: login.php');
+        exit;
+    }
+    ?>
     <body>
         <nav class="navbar navbar-default">
             <div class="container-fluid">
@@ -14,7 +24,9 @@
                     <a class="navbar-brand" href=".">URL Shortener and Hider</a>
                 </div>
                 <ul class="nav navbar-nav">
-                    <li class="active"><a href=".">Home</a></li>
+                    <li class="active"><a href=".">Generator</a></li>
+                    <li><a href="list.php">List Links</a></li>
+                    <li><a href="logout.php">Logout</a></li>
                 </ul>
             </div>
         </nav>

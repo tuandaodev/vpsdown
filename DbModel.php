@@ -15,6 +15,20 @@ class DbModel {
         mysqli_set_charset($this->link, "utf8");
     }
     
+    public function check_login($username, $password) {
+        $query = "SELECT * FROM `users` WHERE username='$username' and password='$password'";
+        
+        $result = mysqli_query($this->link, $query);
+        
+        $count = mysqli_num_rows($result);
+        
+        if ($count > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
     public function query($query) {
         $result = mysqli_query($this->link, $query);
         
@@ -53,7 +67,7 @@ class DbModel {
                         "' . $uid . '",
                         "' . urlencode($url) . '",
                         "' . $type . '",
-                        Now())';
+                        "' . time() . '")';
         
         $result = mysqli_query($this->link, $query);
 
@@ -61,5 +75,30 @@ class DbModel {
         
     }
     
+    public function get_all_url() {
+		
+        $query = "SELECT * FROM url";
+		
+        $result = mysqli_query($this->link, $query);
+		
+        if ($result) {
+            $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            if ($return) {
+                return $return;
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
+        
+    }
+    
+    public function delete_url($id) {
+        $query = "DELETE FROM url WHERE id = $id";
+        $result = mysqli_query($this->link, $query);
+        return $result;
+        
+    }
 }
 
