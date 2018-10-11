@@ -75,7 +75,7 @@
                                                             break;
                                                     }
                                                 ?></td>
-                                                <td><a href='<?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?>'><?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?></a></td>
+                                                <td><a target='_blank' href='<?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?>'><?php echo DOMAIN . 'download.php?id=' . $url['uid'] ?></a></td>
                                                 <td><?php echo urldecode($url['url']) ?></td>
                                                 <td><?php echo date('H:i:s d-m-Y', $url['created']) ?></td>
                                                 <td class="text-center">

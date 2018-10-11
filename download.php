@@ -3,7 +3,7 @@
 require_once('DbModel.php');
 require_once('function.php');
 
-$accept_source = array('apkhide.com', 'moddroid.com');
+$accept_source = array('localhost', 'apkhide.com', 'moddroid.com');
 
 $check_source = false;
 

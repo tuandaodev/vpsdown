@@ -1,6 +1,7 @@
 <?php
 
 ini_set('memory_limit', '2048M');
+ini_set('user_agent', 'Mozilla/5.0');
 set_time_limit(3600);
 date_default_timezone_set("Asia/Bangkok");
 
