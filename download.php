@@ -24,14 +24,26 @@ if (!$check_source) {
         $result = $dbModel->get_url($_GET['id']);
         
         if (!empty($result)) {
-            if ($result['type'] == 1) {     // Direct Link
-                $file_url = $result['url'];
-                $file_url = urldecode($file_url);
-                download_direct_link($file_url);
-            } else {
-                $file_url = $result['url'];
-                $file_url = urldecode($file_url);
-                download_google_drive_link($file_url);
+            switch ($result['type']) {
+                case 1:  // Direct Link
+                    $file_url = $result['url'];
+                    $file_url = urldecode($file_url);
+                    download_direct_link($file_url);
+                    break;
+                case 2: // Google Drive
+                    $file_url = $result['url'];
+                    $file_url = urldecode($file_url);
+                    download_google_drive_link($file_url);
+                    break;
+                case 3: // cloud.mail.ru
+                    $file_url = $result['url'];
+                    $file_url = urldecode($file_url);
+                    download_cloud_mail_ru($file_url);
+                    break;
+                default:
+                    $file_url = $result['url'];
+                    header("Location: $file_url");
+                    exit;
             }
         } else {
             echo "Can't find your file on the system.";

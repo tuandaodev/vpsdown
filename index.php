@@ -58,6 +58,9 @@
                                             <label class="radio-inline">
                                                 <input type="radio" name="type" id="type_drive" value="2">Google Drive
                                             </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="type" id="type_cloud_mail_ru" value="3">Cloud.mail.ru
+                                            </label>
                                         </div>
                                     </div>
                                     <div class="col-md-12">

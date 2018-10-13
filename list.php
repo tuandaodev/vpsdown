@@ -111,7 +111,9 @@
         <script src="//cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
         <script>
             $(document).ready(function () {
-                $('#list_links').DataTable();
+                $('#list_links').DataTable( {
+                    "order": [[ 0, "desc" ]]
+                } );
             });
             
             function deleteURL(url_id) {

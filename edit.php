@@ -77,6 +77,9 @@
                                             <label class="radio-inline">
                                                 <input type="radio" name="type" id="type_drive" value="2" <?php echo $url['type'] == 2 ? 'checked=""' : ''; ?>>Google Drive
                                             </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="type" id="type_cloud_mail_ru" value="3" <?php echo $url['type'] == 3 ? 'checked=""' : ''; ?>>Cloud.mail.ru
+                                            </label>
                                         </div>
                                     </div>
                                     <div class="col-md-12">
