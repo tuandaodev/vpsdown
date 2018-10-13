@@ -70,6 +70,9 @@
                                                         case 2:
                                                             echo "Google Drive";
                                                             break;
+                                                        case 3:
+                                                            echo "Cloud.mail.ru";
+                                                            break;
                                                         default:
                                                             echo "Unknown";
                                                             break;
