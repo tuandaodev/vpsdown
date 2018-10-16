@@ -8,7 +8,7 @@ $accept_source = array('localhost', 'apkhide.com', 'moddroid.com');
 $check_source = false;
 
 foreach ($accept_source as $source) {
-    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) != false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
+    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) !== false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
         $check_source = true;
         break;
     }

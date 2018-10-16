@@ -116,10 +116,18 @@ function download_google_drive_link($google_url) {
     $matches = array();
     preg_match("/.*file\/d\/([^ ]+)\/view/", $google_url, $matches);
     
+    $file_id = '';
     if (isset($matches[1]) && !empty($matches[1])) {
         $file_id = $matches[1];
     }
-    
+    if (!$file_id) {
+        $parts = parse_url($google_url);
+        parse_str($parts['query'], $query);
+        
+        if (isset($query['id']) && !empty($query['id'])) {
+            $file_id = $query['id'];
+        }
+    }
     $file_url = "https://drive.google.com/uc?export=download&id=$file_id";
     
     $response_headers = array_change_key_case(get_headers($file_url, TRUE));
@@ -132,25 +140,36 @@ function download_google_drive_link($google_url) {
     $filename = "";
     // Get data size
     $data_size = 0;
-    if (isset($response_headers['content-length'])) {
-        $data_size = $response_headers['content-length'];
-    }
-    
     // Get direct link
     $direct_link = $file_url;
     if (isset($response_headers['location']) && !empty($response_headers['location'])) {
+        
         $direct_link = $response_headers['location'];
-    }
-    
-    // Get File Name
-    if (isset($response_headers["content-disposition"])) {
-        // this catches filenames between Quotes
-        if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
-            $filename = $matches[1];
-    } 
-        // if filename is not quoted, we take all until the next space
-        else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
-            $filename = $matches[1];
+        if (isset($response_headers['content-length'])) {
+            $data_size = $response_headers['content-length'];
+        }
+        // Get File Name
+        if (isset($response_headers["content-disposition"])) {
+            // this catches filenames between Quotes
+            if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
+                $filename = $matches[1];
+        } 
+            // if filename is not quoted, we take all until the next space
+            else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
+                $filename = $matches[1];
+            }
+        }
+        
+    } else {
+         $direct_link = "https://www.googleapis.com/drive/v3/files/$file_id?key=" . DEVELOPER_KEY . "&alt=media";
+         
+         $url_info = "https://www.googleapis.com/drive/v3/files/$file_id?key=" . DEVELOPER_KEY;
+         $file_info = json_decode(get_page_content($url_info, false), true);
+         $filename = $file_info['name'];
+         
+         $response_headers = array_change_key_case(get_headers($direct_link, TRUE));
+         if (isset($response_headers['content-length'])) {
+            $data_size = $response_headers['content-length'];
         }
     }
     

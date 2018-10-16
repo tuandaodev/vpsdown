@@ -1,6 +1,6 @@
 <?php
 
-function get_page_content($url) {
+function get_page_content($url, $body_only = true) {
     $proxy = null;
 
     $http["method"] = "GET";
@@ -11,9 +11,11 @@ function get_page_content($url) {
     $options['http'] = $http;
     $context = stream_context_create($options);
     $body = @file_get_contents($url, NULL, $context);
-
-    if (preg_match('~<body[^>]*>(.*?)</body>~si', $body, $matches)) {
-        $body = $matches[1];
+    
+    if ($body_only) {
+        if (preg_match('~<body[^>]*>(.*?)</body>~si', $body, $matches)) {
+            $body = $matches[1];
+        }
     }
     return $body;
 }
@@ -29,6 +31,29 @@ function pathcombine() {
     }
     return $result;
 }
+
+// Google Drive
+function GetConfirmCode($page_content) {
+    $doc = new DomDocument;
+    // We need to validate our document before refering to the id
+    $doc->validateOnParse = true;
+    $internalErrors = libxml_use_internal_errors(true); 
+    $doc->loadHtml($page_content);
+    libxml_use_internal_errors($internalErrors);
+    
+    $element = $doc->getElementById('uc-download-link');
+    if ($element) {
+        $link = $element->getAttribute('href');
+        
+        $parts = parse_url($link);
+        parse_str($parts['query'], $query);
+        if (isset($query['confirm']) && !empty($query['confirm'])) {
+            return $query['confirm'];
+        }
+    }
+    return false;
+}
+// End Google Drive
 
 // Begin for cloud.mail.ru
 function GetMainFolder($page) {

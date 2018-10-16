@@ -5,7 +5,7 @@ ini_set('user_agent', 'Mozilla/5.0');
 set_time_limit(3600);
 date_default_timezone_set("Asia/Bangkok");
 
-define('DEVELOPER_KEY', 'AIzaSyBQNDAGcbVFBSdFNzbUP1SOgn-mkA7aN-U');
+define('DEVELOPER_KEY', 'AIzaSyCmmf1ifYYQkUd8P4QoDpiaxkQmDJtGt5M');
 
 define('DB_NAME', 'vps_down');
 define('DB_USER', 'root');
