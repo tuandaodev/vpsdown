@@ -7,13 +7,14 @@ $accept_source = array('localhost', 'apkhide.com', 'moddroid.com');
 
 $check_source = false;
 
-foreach ($accept_source as $source) {
-    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) !== false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
-        $check_source = true;
-        break;
-    }
-}
+//foreach ($accept_source as $source) {
+//    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) !== false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
+//        $check_source = true;
+//        break;
+//    }
+//}
 
+$check_source = true;
 if (!$check_source) {
     header('Location: ' . DOMAIN . 'download.html');
     exit;
@@ -31,12 +32,11 @@ if (!$check_source) {
             }
         }
         
-        $search_url = "https://apkpure.com/search?q=" . $packname;
+        $package_url = "https://apkpure.com/store/apps/details?id=" . $packname;
         
-        $app_url = GetApkPureFullUrlByPackname(get_page_content($search_url, false));
+        $app_url = GetApkPureFullUrlByPackname(get_page_content($package_url, false));
         
         if ($app_url) {
-            $app_url = $app_url . "/download?from=details";
             $direct_url = GetApkPureDownloadURL(get_page_content($app_url, false));
             
             if ($direct_url) {

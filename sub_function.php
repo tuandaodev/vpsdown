@@ -91,18 +91,29 @@ function GetApkPureFullUrlByPackname($page_content) {
     $doc->loadHtml($page_content);
     libxml_use_internal_errors($internalErrors);
     
-    $element = $doc->getElementById('search-res');
+    $xpath = new \DOMXpath($doc);
+    $articles = $xpath->query('//div[@class="ny-down"]');
+    
+    if (count($articles) == 0) return false;
+    
     $links = [];
-    if ($element) {
-        $arr = $element->getElementsByTagName("a"); // DOMNodeList Object
-        foreach($arr as $item) { // DOMElement Object
+    
+    foreach($articles as $container) {
+      $arr = $container->getElementsByTagName("a");
+      foreach($arr as $item) {
           $href =  $item->getAttribute("href");
           $links[] = $apkpure_url . $href;
-        }
-        if (count($links)>0) {
-            return $links[0];
+      }
+    }
+    
+    if (count($links) > 0) {
+        foreach ($links as $url) {
+            if (strpos($url, 'download?from=details') !== false) {
+                return $url;
+            }
         }
     }
+    
     return false;
 }
 
