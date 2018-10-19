@@ -62,7 +62,7 @@ function download_full_info($file_url, $filename, $data_size = 0) {
     readfile($file_url); 
 }
 
-function download_direct_link($file_url) {
+function download_direct_link($file_url, $replace_name = false) {
     
     if (ob_get_level())
             ob_end_clean();
@@ -93,7 +93,11 @@ function download_direct_link($file_url) {
             $filename = $matches[1];
         }
     }
-
+    
+    if ($replace_name) {
+        $filename = str_replace("apkpure.com", "moddroid.com", $filename);
+    }
+    
     header('Content-Type: application/octet-stream');
     header("Content-Transfer-Encoding: Binary");
     header("Content-disposition: attachment; filename=\"" . $filename . "\"");

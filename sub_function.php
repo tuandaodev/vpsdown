@@ -32,7 +32,7 @@ function pathcombine() {
     return $result;
 }
 
-// Google Drive
+// Google Drive - Not Used
 function GetConfirmCode($page_content) {
     $doc = new DomDocument;
     // We need to validate our document before refering to the id
@@ -77,3 +77,49 @@ function GetTokenDownload($page) {
         return false;
 }
 // End for cloud.mail.ru
+
+
+// Begin APKPure.com
+function GetApkPureFullUrlByPackname($page_content) {
+    
+    $apkpure_url = "https://apkpure.com";
+    
+    $doc = new DomDocument;
+    // We need to validate our document before refering to the id
+    $doc->validateOnParse = true;
+    $internalErrors = libxml_use_internal_errors(true); 
+    $doc->loadHtml($page_content);
+    libxml_use_internal_errors($internalErrors);
+    
+    $element = $doc->getElementById('search-res');
+    $links = [];
+    if ($element) {
+        $arr = $element->getElementsByTagName("a"); // DOMNodeList Object
+        foreach($arr as $item) { // DOMElement Object
+          $href =  $item->getAttribute("href");
+          $links[] = $apkpure_url . $href;
+        }
+        if (count($links)>0) {
+            return $links[0];
+        }
+    }
+    return false;
+}
+
+function GetApkPureDownloadURL($page_content) {
+    $doc = new DomDocument;
+    // We need to validate our document before refering to the id
+    $doc->validateOnParse = true;
+    $internalErrors = libxml_use_internal_errors(true); 
+    $doc->loadHtml($page_content);
+    
+    libxml_use_internal_errors($internalErrors);
+    
+    $element = $doc->getElementById('iframe_download');
+    if ($element) {
+        $link = $element->getAttribute('src');
+        return $link;
+    }
+    return false;
+}
+// End APKPure.com
