@@ -7,19 +7,19 @@ $accept_source = array('localhost', 'apkhide.com', 'moddroid.com');
 
 $check_source = false;
 
-//foreach ($accept_source as $source) {
-//    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) !== false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
-//        $check_source = true;
-//        break;
-//    }
-//}
+foreach ($accept_source as $source) {
+    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], $source) !== false && $_SERVER['HTTP_REFERER'] != DOMAIN) {
+        $check_source = true;
+        break;
+    }
+}
 
-$check_source = true;
+$app_url = '';
 if (!$check_source) {
     header('Location: ' . DOMAIN . 'download.html');
     exit;
 } else {
-    if (isset($_GET['packname'])) {
+    if (isset($_GET['packname']) && !empty($_GET['packname'])) {
         
         $packname = $_GET['packname'];
         
@@ -31,12 +31,19 @@ if (!$check_source) {
                 $packname = $query['id'];
             }
         }
-        
         $package_url = "https://apkpure.com/store/apps/details?id=" . $packname;
-        
         $app_url = GetApkPureFullUrlByPackname(get_page_content($package_url, false));
         
-        if ($app_url) {
+    } elseif (isset($_GET['url']) && !empty($_GET['url'])) {
+        
+        $app_url = "https://apkpure.com" . urldecode($_GET['url']);
+        
+    } else {
+        echo "Can't find your file on the system.";
+        exit;
+    }
+    
+    if ($app_url) {
             $direct_url = GetApkPureDownloadURL(get_page_content($app_url, false));
             
             if ($direct_url) {
@@ -50,10 +57,8 @@ if (!$check_source) {
             }
         } else {
             echo "Can't find your file on the system.";
+            exit;
         }
-    } else {
-        echo "Can't find your file on the system.";
-    }
 }
 
 ?>
