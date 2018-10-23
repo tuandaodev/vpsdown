@@ -68,7 +68,16 @@ function download_direct_link($file_url, $replace_name = false) {
             ob_end_clean();
     
     $filename = basename($file_url);
-
+    
+    $filename_temp = parse_url($file_url, PHP_URL_PATH);
+    if (isset($filename_temp) && !empty($filename_temp)) {
+        $filename_temp = basename($filename_temp);
+    }
+    
+    if ($filename_temp) {
+        $filename = $filename_temp;
+    }
+    
     $response_headers = array_change_key_case(get_headers($file_url, TRUE));
     
     if (isset($response_headers['server']) && $response_headers['server'] == 'cloudflare') {
