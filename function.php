@@ -213,6 +213,38 @@ function download_google_drive_link($google_url) {
 //  $type = 1: URL 
 //  $type = 2: Package
 function downloadFile($url, $filename) {
+    // start the session
+    if (!session_id()) {
+        session_start();
+    }
+    // I can read/write to session
+    $_SESSION['latestRequestTime'] = time();
+    // close the session
+    session_write_close();
+    
+    if (isset($_SESSION['cache_type']) && isset($_SESSION['cache_id'])) {
+        
+        $type = $_SESSION['cache_type'];
+        $uid = $_SESSION['cache_id'];
+        
+        $dbModel = new DbModel();
+        $caching = $dbModel->get_cache($uid, 0);    // caching, don't cache anymore
+        
+        if (!empty($caching)) {
+            readfile($url);
+        } else {
+            $filename = clean_filename($filename);
+            $filename = generate_filename($filename);
+            $cache_id = $dbModel->insert_cache($uid, $filename, $type);
+            subDownloadFile($url, $filename, $cache_id);
+        }
+    } else {
+        readfile($url);
+    }
+}
+
+// Begin caching, set status cache = 0, when it's done, update to 1 to let client know the cache is completed and they can download it
+function subDownloadFile($url, $filename, $cache_id = 0) {
     
     ignore_user_abort(true);
     set_time_limit(0);
@@ -220,9 +252,6 @@ function downloadFile($url, $filename) {
     if (!file_exists(DOWNLOAD_FOLDER)) {
         mkdir(DOWNLOAD_FOLDER, 0777, true);
     }
-    
-    $filename = clean_filename($filename);
-    $filename = generate_filename($filename);
     
     $newfname = DOWNLOAD_FOLDER . '/' . $filename;
     
@@ -237,18 +266,18 @@ function downloadFile($url, $filename) {
             }
         }
     }
+    
     if ($file) {
         fclose($file);
     }
     if ($newf) {
         fclose($newf);
-//        if (isset($_SESSION['cache_type']) && isset($_SESSION['cache_id'])) {
-            $type = $_SESSION['cache_type'];
-            $uid = $_SESSION['cache_id'];
-            
+        
+        // Let client know the caching is completed.
+        if ($cache_id) {
             $dbModel = new DbModel();
-            $dbModel->insert_cache($uid, $filename, $type);
-//        }
+            $dbModel->update_cache_status($cache_id);
+        }
     }
 }
 
@@ -298,7 +327,6 @@ function download_cache_normal($cache) {
     
     $filename = $cache['name'];
     
-    // hide notices
     @ini_set('error_reporting', E_ALL & ~ E_NOTICE);
 
     //- turn off compression on the server
@@ -307,6 +335,7 @@ function download_cache_normal($cache) {
 
     // sanitize the file request, keep just the name and extension
     // also, replaces the file location with a preset one ('./myfiles/' in this example)
+    
     $file_path  = DOWNLOAD_FOLDER . '/' . $filename;
     $path_parts = pathinfo($file_path);
     $file_name  = $path_parts['basename'];

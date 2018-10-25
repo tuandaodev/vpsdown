@@ -131,23 +131,27 @@ class DbModel {
     // Type 1: URL
     // Type 2: Package
     public function insert_cache($uid, $filename, $type = 1) {
-        $query = '  INSERT INTO cache(uid, name, type, updated)
+        $query = '  INSERT INTO cache(uid, name, type, updated, status)
                         VALUES (
                         "' . $uid . '",
                         "' . $filename . '",
                         "' . $type . '",
-                        "' . time() . '")';
+                        "' . time() . '", 0)';
         
         $result = mysqli_query($this->link, $query);
-        return $result;
+        
+        $last_id = 0;
+        if ($result) {
+            $last_id = mysqli_insert_id($this->link);
+        }
+        return $last_id;
     }
     
-    public function get_cache($uid) {
-    	
-        $query = "SELECT * FROM cache WHERE uid = '$uid'";
-		
+    // Status 1: cache completed
+    // Status 0: caching
+    public function get_cache($uid, $status = 1) {
+        $query = "SELECT * FROM cache WHERE status = $status AND uid = '$uid'";
         $result = mysqli_query($this->link, $query);
-		
         if ($result) {
             $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
             if ($return) {
@@ -158,6 +162,14 @@ class DbModel {
         } else {
             return [];
         }
+    }
+    
+    public function update_cache_status($id) {
+        $query = "  UPDATE cache 
+                    SET status = 1
+                    WHERE id = $id";
+        $result = mysqli_query($this->link, $query);
+        return $result;
     }
     
     public function update_cache_time($id) {
