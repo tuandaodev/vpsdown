@@ -16,6 +16,7 @@ define('DB_COLLATE', '');
 
 define('DOMAIN', 'http://localhost/vpsdown/');
 define('DOWNLOAD_FOLDER', 'cache_files');
+define('CACHE_DAY', 1); // by day
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

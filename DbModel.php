@@ -170,7 +170,7 @@ class DbModel {
     
     public function get_all_old_cache() {
 		
-        $query = "SELECT * FROM cache where updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY))";
+        $query = "SELECT * FROM cache where updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL " . CACHE_DAY . " DAY))";
 		
         $result = mysqli_query($this->link, $query);
 		

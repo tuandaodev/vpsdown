@@ -214,6 +214,9 @@ function download_google_drive_link($google_url) {
 //  $type = 2: Package
 function downloadFile($url, $filename) {
     
+    ignore_user_abort(true);
+    set_time_limit(0);
+    
     if (!file_exists(DOWNLOAD_FOLDER)) {
         mkdir(DOWNLOAD_FOLDER, 0777, true);
     }
