@@ -15,3 +15,8 @@ define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
 
 define('DOMAIN', 'http://localhost/vpsdown/');
+define('DOWNLOAD_FOLDER', 'cache_files');
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);

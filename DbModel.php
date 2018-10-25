@@ -94,7 +94,7 @@ class DbModel {
     
     public function get_all_url() {
 		
-        $query = "SELECT * FROM url";
+        $query = "SELECT * FROM url order by id DESC";
 		
         $result = mysqli_query($this->link, $query);
 		
@@ -115,7 +115,6 @@ class DbModel {
         $query = "DELETE FROM url WHERE id = $id";
         $result = mysqli_query($this->link, $query);
         return $result;
-        
     }
     
     public function update_url($id, $url, $type) {
@@ -127,5 +126,72 @@ class DbModel {
 
         return $result;
     }
+    
+    // Cache
+    // Type 1: URL
+    // Type 2: Package
+    public function insert_cache($uid, $filename, $type = 1) {
+        $query = '  INSERT INTO cache(uid, name, type, updated)
+                        VALUES (
+                        "' . $uid . '",
+                        "' . $filename . '",
+                        "' . $type . '",
+                        "' . time() . '")';
+        
+        $result = mysqli_query($this->link, $query);
+        return $result;
+    }
+    
+    public function get_cache($uid) {
+    	
+        $query = "SELECT * FROM cache WHERE uid = '$uid'";
+		
+        $result = mysqli_query($this->link, $query);
+		
+        if ($result) {
+            $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            if ($return) {
+                return $return[0];
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
+    }
+    
+    public function update_cache_time($id) {
+        $query = "  UPDATE cache 
+                    SET updated = '".time()."'
+                    WHERE id = $id";
+        $result = mysqli_query($this->link, $query);
+        return $result;
+    }
+    
+    public function get_all_old_cache() {
+		
+        $query = "SELECT * FROM cache where updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY))";
+		
+        $result = mysqli_query($this->link, $query);
+		
+        if ($result) {
+            $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            if ($return) {
+                return $return;
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
+        
+    }
+    
+    public function delete_cache($id) {
+        $query = "DELETE FROM cache WHERE id = $id";
+        $result = mysqli_query($this->link, $query);
+        return $result;
+    }
+    // End Cache
 }
 
