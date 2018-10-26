@@ -18,9 +18,6 @@ define('DOMAIN', 'http://localhost/vpsdown/');
 define('DOWNLOAD_FOLDER', 'cache_files');
 define('CACHE_DAY', 1); // by day
 
-define('EMAIL_USER', 'minhtuan.itus@gmail.com');
-define('EMAIL_PASS', 'Minhtuan123@');
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);

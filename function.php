@@ -7,7 +7,7 @@ require_once('DbModel.php');
 function download_cloud_mail_ru($file_url) {
     $is_ok = true;
     $page = get_page_content($file_url);
-
+    
     $folder = GetMainFolder($page);
     $file_download_url = GetBaseUrl($page);
     $token = GetTokenDownload($page);
@@ -28,7 +28,7 @@ function download_cloud_mail_ru($file_url) {
         if (!$token) {
             $direct_link .= '?key=' . $token;
         }
-
+        
         if (isset($file_item['name']) && !empty($file_item['name'])) {
             $data_size = 0;
             if (isset($file_item['size']) && !empty($file_item['size'])) {
@@ -64,6 +64,18 @@ function download_full_info($file_url, $filename, $data_size = 0) {
     downloadFile($file_url, $filename);
 }
 
+function check_url_is_404($response_headers) {
+    $header_string = json_encode($response_headers);
+    $disallow = array('404.html', '404 Not Found');
+    
+    foreach ($disallow as $source) {
+        if (strpos($header_string, $source) !== false) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function download_direct_link($file_url, $replace_name = false) {
     
     if (ob_get_level())
@@ -81,6 +93,10 @@ function download_direct_link($file_url, $replace_name = false) {
     }
     
     $response_headers = array_change_key_case(get_headers($file_url, TRUE));
+    if (!check_url_is_404($response_headers)) {
+        header("Location: $file_url");
+        exit;
+    }
     
     if (isset($response_headers['server']) && $response_headers['server'] == 'cloudflare') {
         header("Location: $file_url");
@@ -147,11 +163,10 @@ function download_google_drive_link($google_url) {
     $file_url = "https://drive.google.com/uc?export=download&id=$file_id";
     
     $response_headers = array_change_key_case(get_headers($file_url, TRUE));
-    
-//    echo "<pre>";
-//    print_r($response_headers);
-//    echo "<pre>";
-//    exit;
+    if (!check_url_is_404($response_headers)) {
+        header("Location: $google_url");
+        exit;
+    }
     
     $filename = "";
     // Get data size
