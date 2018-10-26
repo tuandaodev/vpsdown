@@ -9,7 +9,6 @@ function getClient() {
     $client->setAuthConfig('credentials.json');
     $client->setAccessType('offline');
     $client->setPrompt('select_account consent');
-
     
     
     // Load previously authorized token from a file, if it exists.

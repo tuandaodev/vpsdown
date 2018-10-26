@@ -20,6 +20,9 @@ define("BATCH_SIZE", 1000); // Batch size when selecting rows from database in o
  * Instantiate Backup_Database and perform backup
  */
 
+$client = getClient();
+$service = new Google_Service_Drive($client);
+
 // Report all errors
 error_reporting(E_ALL);
 // Set script max execution time
@@ -42,9 +45,6 @@ if (php_sapi_name() != "cli") {
 
 $file_name = $backupDatabase->getOutputFileName();
 $file_path = $backupDatabase->getOutputFilePath();
-
-$client = getClient();
-$service = new Google_Service_Drive($client);
 
 if ($result == "OK") {
     
