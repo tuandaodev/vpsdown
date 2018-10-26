@@ -1,0 +1,15 @@
+{
+  "name": "vps_down/backup",
+  "description": "auto backup for vps_down",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Tuan Dao",
+      "email": "tuandao.dev@gmail.com"
+    }
+  ],
+  "require": {
+    "google/apiclient": "2.x-dev"
+  }
+}
