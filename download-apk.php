@@ -56,10 +56,10 @@ if (!$check_source) {
             }
         }
         
-        $cache = check_cache($$packname);
+        $cache = check_cache($packname);
         if (!empty($cache)) {
-            download_cache($cache);
-            exit;
+                download_cache($cache);
+                exit;
         }
         
         $package_url = "https://apkpure.com/store/apps/details?id=" . $packname;

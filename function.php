@@ -298,6 +298,11 @@ function check_cache($uid) {
     $cache = $dbModel->get_cache($uid);
     
     if (!empty($cache)) {
+        $filepath = DOWNLOAD_FOLDER . '/' . $cache['name'];
+        if (!file_exists($filepath)) {
+            $dbModel->delete_cache($cache['id']);
+            return [];
+        }
         return $cache;
     } else {
         return [];
