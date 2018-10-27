@@ -164,6 +164,23 @@ class DbModel {
         }
     }
     
+    // Status 1: cache completed
+    // Status 0: caching
+    public function get_cache_without_status($uid) {
+        $query = "SELECT * FROM cache WHERE uid = '$uid'";
+        $result = mysqli_query($this->link, $query);
+        if ($result) {
+            $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            if ($return) {
+                return $return[0];
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
+    }
+    
     public function update_cache_status($id) {
         $query = "  UPDATE cache 
                     SET status = 1
@@ -182,7 +199,29 @@ class DbModel {
     
     public function get_all_old_cache() {
 		
-        $query = "SELECT * FROM cache where updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL " . CACHE_DAY . " DAY))";
+        $query = "SELECT * FROM cache where updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL " . CACHE_DAY . " HOUR))";
+		
+        $result = mysqli_query($this->link, $query);
+		
+        if ($result) {
+            $return = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            if ($return) {
+                return $return;
+            } else {
+                return [];
+            }
+        } else {
+            return [];
+        }
+        
+    }
+    
+    public function get_duplicate_cache() {
+		
+        $query = "  SELECT *
+                    FROM cache
+                    GROUP BY uid
+                    HAVING count(uid) > 1";
 		
         $result = mysqli_query($this->link, $query);
 		

@@ -1,6 +1,7 @@
 <?php
 
 require_once('DbModel.php');
+require_once('function.php');
 
 $return = array();
 $return['status'] = "0";
@@ -42,6 +43,14 @@ if (isset($_POST['action'])) {
             $result = $dbModel->update_url($url_id, $url, $type);
             if ($result) {
                 $return['status'] = "1";
+                // clear cache
+                $url = $dbModel->get_url_by_id($url_id);
+                $cache = $dbModel->get_cache_without_status($url['uid']);
+                $path = DOWNLOAD_FOLDER . '/' . $cache['name'];
+                if (file_exists($path)) {
+                    unlink($path);
+                }
+                $dbModel->delete_cache($cache['id']);
             }
             break;
     }

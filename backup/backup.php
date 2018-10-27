@@ -3,6 +3,7 @@
 require_once('../config.php');
 require_once('backup.class.php');
 require_once('vendor/autoload.php');
+require_once('../function.php');
 
 /**
  * Define database parameters here
@@ -46,6 +47,8 @@ if (php_sapi_name() != "cli") {
 $file_name = $backupDatabase->getOutputFileName();
 $file_path = $backupDatabase->getOutputFilePath();
 
+$log = $output;
+
 if ($result == "OK") {
     
     $optParams = array(
@@ -56,7 +59,7 @@ if ($result == "OK") {
       
       $folder_id = '';
       if (count($results->getFiles()) == 0) {
-        print "No files found.\n";
+        $log .= "No files found.\n";
     } else {
         foreach ($results->getFiles() as $file) {
             if ($file->getName() == BACKUP_DIR) {
@@ -73,7 +76,7 @@ if ($result == "OK") {
         $folder = $service->files->create($fileMetadata, array(
             'fields' => 'id'));
 
-        printf("<br/>Folder ID: %s\n", $folder->id);
+        $log .= "<br/>Folder ID: " . $folder->id . "\n";
         
         $folder_id = $folder->id;
     }
@@ -87,13 +90,16 @@ if ($result == "OK") {
         'uploadType' => 'multipart',
         'fields' => 'id'));
     
-    printf("<br/>Upload Completed. File ID: %s\n", $file->id);
+    $log .= "<br/>Upload Completed. File ID: " . $file->id . "\n";
     
     if ($file->id) {
         unlink($file_path);
-        printf("<br/>Upload Completed. Deleted on local: %s\n", $file_path);
+        $log .= "<br/>Upload Completed. Deleted on local: " . $file_path . "\n";
     }
 } else {
-    // Export fail, don't upload.
+    $log .= "Export fail, don't upload.";
 }
+
+echo $log;
+write_logs("cron_backup.txt", $log);
 
