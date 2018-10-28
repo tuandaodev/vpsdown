@@ -130,13 +130,13 @@ class DbModel {
     // Cache
     // Type 1: URL
     // Type 2: Package
-    public function insert_cache($uid, $filename, $type = 1) {
-        $query = '  INSERT INTO cache(uid, name, type, updated, status)
+    public function insert_cache($uid, $filename, $type = 1, $data_size = 0) {
+        $query = '  INSERT INTO cache(uid, name, type, updated, status, source_size)
                         VALUES (
                         "' . $uid . '",
                         "' . $filename . '",
                         "' . $type . '",
-                        "' . time() . '", 0)';
+                        "' . time() . '", 0, ' . $data_size . ')';
         
         $result = mysqli_query($this->link, $query);
         
@@ -181,9 +181,9 @@ class DbModel {
         }
     }
     
-    public function update_cache_status($id) {
+    public function update_cache_status($id, $real_size = 0) {
         $query = "  UPDATE cache 
-                    SET status = 1
+                    SET status = 1, real_size = $real_size
                     WHERE id = $id";
         $result = mysqli_query($this->link, $query);
         return $result;

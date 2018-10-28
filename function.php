@@ -61,7 +61,7 @@ function download_full_info($file_url, $filename, $data_size = 0) {
     header('Pragma: public');
 
 //    readfile($file_url); 
-    downloadFile($file_url, $filename);
+    downloadFile($file_url, $filename, $data_size);
 }
 
 function check_url_is_404($response_headers) {
@@ -137,7 +137,7 @@ function download_direct_link($file_url, $replace_name = false) {
     header('Pragma: public');
 
 //    readfile($file_url);
-    downloadFile($file_url, $filename);
+    downloadFile($file_url, $filename, $data_size);
 }
 
 function download_google_drive_link($google_url) {
@@ -217,7 +217,7 @@ function download_google_drive_link($google_url) {
         header('Pragma: public');
 
 //        readfile($direct_link); 
-        downloadFile($direct_link, $filename);
+        downloadFile($direct_link, $filename, $data_size);
         
     } else {
         header('Location: ' . $direct_link);
@@ -227,7 +227,7 @@ function download_google_drive_link($google_url) {
 
 //  $type = 1: URL 
 //  $type = 2: Package
-function downloadFile($url, $filename) {
+function downloadFile($url, $filename, $data_size = 0) {
     // start the session
     if (!session_id()) {
         session_start();
@@ -250,8 +250,8 @@ function downloadFile($url, $filename) {
         } else {
             $filename = clean_filename($filename);
             $filename = generate_filename($filename);
-            $cache_id = $dbModel->insert_cache($uid, $filename, $type);
-            subDownloadFile($url, $filename, $cache_id);
+            $cache_id = $dbModel->insert_cache($uid, $filename, $type, $data_size);
+            subDownloadFile($url, $filename, $cache_id, $data_size);
         }
     } else {
         readfile($url);
@@ -259,7 +259,7 @@ function downloadFile($url, $filename) {
 }
 
 // Begin caching, set status cache = 0, when it's done, update to 1 to let client know the cache is completed and they can download it
-function subDownloadFile($url, $filename, $cache_id = 0) {
+function subDownloadFile($url, $filename, $cache_id = 0, $data_size = 0) {
     
     ignore_user_abort(true);
     set_time_limit(0);
@@ -288,10 +288,34 @@ function subDownloadFile($url, $filename, $cache_id = 0) {
     if ($newf) {
         fclose($newf);
         
+        $dbModel = new DbModel();
+        // Check connections
+        if (connection_aborted()) {
+            if (file_exists($newfname)) {
+                unlink($newfname);
+            }
+            $dbModel->delete_cache($cache_id);
+            $size_log = "Connection aborted";
+            write_logs("error_cache_size.txt", $size_log, 'www-logs');
+            return false;
+        }
+        
+        $newfsize = filesize($newfname);
+        if ($data_size && ($newfsize !== $data_size || $newfsize == 0)) {
+            
+            $size_log = $data_size . " diff " . $newfsize;
+            if (file_exists($newfname)) {
+                unlink($newfname);
+            }
+            $dbModel->delete_cache($cache_id);
+            
+            write_logs("error_cache_size.txt", $size_log, 'www-logs');
+            return false;
+        }
+        
         // Let client know the caching is completed.
         if ($cache_id) {
-            $dbModel = new DbModel();
-            $dbModel->update_cache_status($cache_id);
+            $dbModel->update_cache_status($cache_id, $newfsize);
         }
     }
 }
@@ -473,14 +497,14 @@ function download_cache_normal($cache) {
     }
 }
 
-function write_logs($file_name = '', $text = '') {
+function write_logs($file_name = '', $text = '', $folder_path = 'logs') {
     
     if (empty($file_name)) {
         $t = date('Ymd');
         $file_name = "logs-{$t}.txt";
     }
     
-    $folder_path = 'logs';
+//    $folder_path = 'logs';
     $file_path = $folder_path . '/' . $file_name;
     
     if (!file_exists($folder_path)) {
