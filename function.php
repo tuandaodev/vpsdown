@@ -290,27 +290,30 @@ function subDownloadFile($url, $filename, $cache_id = 0, $data_size = 0) {
         
         $dbModel = new DbModel();
         // Check connections
-        if (connection_aborted()) {
-            if (file_exists($newfname)) {
-                unlink($newfname);
-            }
-            $dbModel->delete_cache($cache_id);
-            $size_log = "Connection aborted";
-            write_logs("error_cache_size.txt", $size_log, 'www-logs');
-            return false;
-        }
+//        if (connection_aborted()) {
+//            if (file_exists($newfname)) {
+//                unlink($newfname);
+//            }
+//            $dbModel->delete_cache($cache_id);
+//            $size_log = "Connection aborted";
+//            write_logs("error_cache_size.txt", $size_log, 'www-logs');
+//            return false;
+//        }
         
         $newfsize = filesize($newfname);
-        if ($data_size && ($newfsize !== $data_size || $newfsize == 0)) {
-            
-            $size_log = $data_size . " diff " . $newfsize;
-            if (file_exists($newfname)) {
-                unlink($newfname);
+        
+        if ($data_size) {
+            if ($newfsize != $data_size || $newfsize == 0) {
+
+                $size_log = $data_size . " diff " . $newfsize;
+                if (file_exists($newfname)) {
+                    unlink($newfname);
+                }
+                $dbModel->delete_cache($cache_id);
+
+                write_logs("error_cache_size.txt", $size_log, 'www-logs');
+                return false;
             }
-            $dbModel->delete_cache($cache_id);
-            
-            write_logs("error_cache_size.txt", $size_log, 'www-logs');
-            return false;
         }
         
         // Let client know the caching is completed.
