@@ -5,3 +5,10 @@ Cron Command:
 crontab -e
 0,15,30,45 * * * * cd /var/www/html && php -f /var/www/html/cron-jobs.php >> /var/log/apache2/crontab.log
 0 0,6,12,18 * * * cd /var/www/html/backup && php -f /var/www/html/backup/backup.php >> /var/log/apache2/crontab.log
+
+
+apt update
+apt install phpmyadmin php-mbstring php-gettext
+systemctl restart apache2
+ln -s /usr/share/phpmyadmin /var/www/html/phpmyadmin
+service apache2 restart
