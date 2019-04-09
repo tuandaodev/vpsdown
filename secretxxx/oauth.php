@@ -2,7 +2,7 @@
 
 require_once('api.class.php');
 
-$tokenPath = 'token.json';
+$tokenPath = dirname(__FILE__) . '/token.json';
 if (file_exists($tokenPath)) {
     $accessToken = json_decode(file_get_contents($tokenPath), true);
     echo "TOKEN EXISTS. REMOVE FIRST.";

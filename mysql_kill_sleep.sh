@@ -1,0 +1,1 @@
+mysql -u root -pThiendien1 -e "show processlist;" | grep Sleep | awk '{print $1}' | while read LINE; do mysql -u root -pThiendien1 -e "kill $LINE"; done 

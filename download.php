@@ -30,7 +30,7 @@ if (!$check_source) {
         
         $cache = $Downloader->check_cache($_GET['id']);
         if (!empty($cache)) {
-            download_cache($cache);
+            $Downloader->download_cache($cache);
             exit;
         }
         

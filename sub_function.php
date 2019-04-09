@@ -1,5 +1,20 @@
 <?php
 
+function request_get($url) {
+    $curl = curl_init();
+    // Set some options - we are passing in a useragent too here
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_URL => $url,
+    ]);
+    // Send the request & save response to $resp
+    $resp = curl_exec($curl);
+    // Close request to clear up some resources
+    curl_close($curl);
+    
+    return $resp;
+}
+
 function get_page_content($url, $body_only = true) {
     $proxy = null;
 
@@ -11,7 +26,7 @@ function get_page_content($url, $body_only = true) {
     $options['http'] = $http;
     $context = stream_context_create($options);
     $body = @file_get_contents($url, NULL, $context);
-
+    
     if ($body_only) {
         if (preg_match('~<body[^>]*>(.*?)</body>~si', $body, $matches)) {
             $body = $matches[1];

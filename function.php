@@ -14,6 +14,10 @@ Class Downloader {
         $this->dbModel = $dbModel;
     }
     
+    public function __destruct() {
+        $this->dbModel->close();
+    }
+    
     public function download_cloud_mail_ru($file_url) {
         $is_ok = true;
         $page = get_page_content($file_url);
@@ -94,6 +98,13 @@ Class Downloader {
             if (strpos($header_string, $source) !== false) {
                 return true;
             }
+        }
+        return false;
+    }
+    
+    public function check_url_is_error($json_response) {
+        if (isset($json_response['error']) && !empty($json_response['error'])) {
+            return true;
         }
         return false;
     }
@@ -182,72 +193,92 @@ Class Downloader {
                 $file_id = $query['id'];
             }
         }
+        
+        $try_old_method = false;
+        try {
+            if (!$this->downloadFileGoogleAPI($file_id)) {
+                $try_old_method = true;
+            }
+        } catch (Exception $ex) {
+            $try_old_method = true;
+            write_logs("error_download_google_drive_link.txt", $ex->getMessage(), 'www-logs');
+        }
+        
+//        $try_old_method = true; //for testing only
+        if ($try_old_method) {
+            
+            write_logs("old_method_download_google_drive_link.txt", $google_url, 'www-logs');
+            
+            $file_url = "https://drive.google.com/uc?export=download&id=$file_id";
 
-        $this->downloadFileGoogleAPI($file_id);
+            $response_headers = array_change_key_case(get_headers($file_url, TRUE));
 
-        /*
-          $file_url = "https://drive.google.com/uc?export=download&id=$file_id";
+            if (@$_REQUEST['test'] == 1) {
+                echo $file_url;
+                echo "<pre>";
+                print_r($response_headers);
+                echo "</pre>";
+            }
 
-          $response_headers = array_change_key_case(get_headers($file_url, TRUE));
+            if (!$this->check_url_is_404($response_headers)) {
+                header("Location: $google_url");
+                exit;
+            }
 
-          if (@$_REQUEST['test'] == 1) {
-          echo $file_url;
-          echo "<pre>";
-          print_r($response_headers);
-          echo "</pre>";
-          }
+            $filename = "";
+            // Get data size
+            $data_size = 0;
+            // Get direct link
+            $direct_link = $file_url;
+            if (isset($response_headers['location']) && !empty($response_headers['location'])) {
 
-          if (!check_url_is_404($response_headers)) {
-          header("Location: $google_url");
-          exit;
-          }
+                $direct_link = $response_headers['location'];
+                if (isset($response_headers['content-length'])) {
+                    $data_size = $response_headers['content-length'];
+                }
+                // Get File Name
+                if (isset($response_headers["content-disposition"])) {
+                    // this catches filenames between Quotes
+                    if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
+                        $filename = $matches[1];
+                    }
+                    // if filename is not quoted, we take all until the next space
+                    else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
+                        $filename = $matches[1];
+                    }
+                }
+                
+                if (!empty($filename)) {
+                    header('Content-Type: application/octet-stream');
+                    header("Content-Transfer-Encoding: Binary");
+                    header("Content-disposition: attachment; filename=\"" . $filename . "\"");
+                    header('Content-Transfer-Encoding: chunked'); //changed to chunked
+                    header('Expires: 0');
+                    if ($data_size) {
+                        header("Content-length: $data_size");
+                    } else {
+                        $url_info = "https://www.googleapis.com/drive/v3/files/$file_id?fields=name,size&key=" . DEVELOPER_KEY;
+                        $file_info = json_decode(request_get($url_info), true);
+                        if ($file_info) {
+                            if (isset($file_info['size']) && !empty($file_info['size'])) {
+                                $data_size = $file_info['size'];
+                                header("Content-length: " . $file_info['size']);
+                            }
+                        }
+                    }
+                    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                    header('Pragma: public');
 
-          $filename = "";
-          // Get data size
-          $data_size = 0;
-          // Get direct link
-          $direct_link = $file_url;
-          if (isset($response_headers['location']) && !empty($response_headers['location'])) {
-
-          $direct_link = $response_headers['location'];
-          if (isset($response_headers['content-length'])) {
-          $data_size = $response_headers['content-length'];
-          }
-          // Get File Name
-          if (isset($response_headers["content-disposition"])) {
-          // this catches filenames between Quotes
-          if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
-          $filename = $matches[1];
-          }
-          // if filename is not quoted, we take all until the next space
-          else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
-          $filename = $matches[1];
-          }
-          }
-
-          if (!empty($filename)) {
-          header('Content-Type: application/octet-stream');
-          header("Content-Transfer-Encoding: Binary");
-          header("Content-disposition: attachment; filename=\"" . $filename . "\"");
-          header('Content-Transfer-Encoding: chunked'); //changed to chunked
-          header('Expires: 0');
-          if ($data_size) {
-          header("Content-length: $data_size");
-          }
-          header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-          header('Pragma: public');
-
-          //        readfile($direct_link);
-          downloadFile($direct_link, $filename, $data_size);
-          }
-
-          } else {
-
-          }
-
-          header('Location: ' . $direct_link);
-          exit;
-         */
+                    $this->downloadFile($direct_link, $filename, $data_size);
+                } else {
+                    header("Location: $file_url");
+                    exit;
+                }
+            } else {
+                header("Location: $file_url");
+                exit;
+            }
+        } 
     }
 
     public function downloadFileGoogleAPI($fileID) {
@@ -268,9 +299,18 @@ Class Downloader {
             $caching = $this->dbModel->get_cache($uid, 0);    // caching, don't cache anymore
 
             $url_info = "https://www.googleapis.com/drive/v3/files/$fileID?fields=name,size&key=" . DEVELOPER_KEY;
-            $file_info = json_decode(get_page_content($url_info, false), true);
+            
+            $file_info = json_decode(request_get($url_info), true);
             if (!$file_info) {
-                $file_info = json_decode(get_page_content($url_info, false), true);
+                $file_info = json_decode(request_get($url_info), true);
+            }
+            
+            if ($file_info) {
+                if ($this->check_url_is_error($file_info)) {
+                    return false;
+                }
+            } else {
+                return false;
             }
 
             $file_name = "";
@@ -294,6 +334,8 @@ Class Downloader {
             //readfile($url);
             $this->subDownloadFileGoogleDriveWithOutSaveToDisk($fileID, $file_name, $file_size);
         }
+        
+        return true;
     }
 
     public function subDownloadFileGoogleDriveWithOutSaveToDisk($fileID, $filename, $data_size = 0) {
@@ -528,9 +570,9 @@ Class Downloader {
     public function download_cache($cache) {
         //$this->dbModel->update_cache_time($cache['id']);
         if (in_array('mod_xsendfile', apache_get_modules())) {
-            download_cache_xsendfile($cache);
+            $this->download_cache_xsendfile($cache);
         } else {
-            download_cache_normal($cache);
+            $this->download_cache_normal($cache);
         }
     }
 

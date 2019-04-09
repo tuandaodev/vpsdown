@@ -6,12 +6,12 @@ function getGoogleDriveClient() {
     $client = new Google_Client();
     $client->setApplicationName('Google Drive API');
     $client->setScopes(Google_Service_Drive::DRIVE);
-    $client->setAuthConfig('credentials.json');
+    $client->setAuthConfig( dirname(__FILE__) . '/credentials.json');
     $client->setAccessType('offline');
     $client->setPrompt('select_account consent');
     
     // Load previously authorized token from a file, if it exists.
-    $tokenPath = 'token.json';
+    $tokenPath = dirname(__FILE__) . '/token.json';
     if (file_exists($tokenPath)) {
         $accessToken = json_decode(file_get_contents($tokenPath), true);
         $client->setAccessToken($accessToken);
