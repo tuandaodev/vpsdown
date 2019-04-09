@@ -15,6 +15,14 @@ class DbModel {
         mysqli_set_charset($this->link, "utf8");
     }
     
+    public function __destruct() {
+        mysqli_close($this->link);
+    }
+    
+    public function close() {
+        mysqli_close($this->link);
+    }
+    
     public function check_login($username, $password) {
         $query = "SELECT * FROM `users` WHERE username='$username' and password='$password'";
         

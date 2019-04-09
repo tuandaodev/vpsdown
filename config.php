@@ -7,14 +7,14 @@ date_default_timezone_set("Asia/Bangkok");
 
 define('DEVELOPER_KEY', 'AIzaSyCmmf1ifYYQkUd8P4QoDpiaxkQmDJtGt5M');
 
-define('DB_NAME', 'vps_down');
-define('DB_USER', 'root');
-define('DB_PASSWORD', '');
+define('DB_NAME', 'vpsdown');
+define('DB_USER', 'thien');
+define('DB_PASSWORD', 'Thiendien1');
 define('DB_HOST', 'localhost');
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
 
-define('DOMAIN', 'http://localhost/vpsdown/');
+define('DOMAIN', 'http://195.154.200.199/');
 define('DOWNLOAD_FOLDER', 'cache_files');
 define('CACHE_DAY', 2); // by hour
 
