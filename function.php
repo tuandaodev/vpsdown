@@ -8,9 +8,9 @@ require_once('secretxxx/api.class.php');
 Class Downloader {
     
     var $dbModel;
-    var $chunkSizeBytes = 1 * 1024 * 1024;
+    var $chunkSizeBytes = 5 * 1024 * 1024;
     
-    function Downloader($dbModel) {
+    function __construct($dbModel) {
         $this->dbModel = $dbModel;
     }
     
@@ -201,84 +201,107 @@ Class Downloader {
             }
         } catch (Exception $ex) {
             $try_old_method = true;
-            write_logs("error_download_google_drive_link.txt", $ex->getMessage(), 'www-logs');
+            write_logs("error_download_google_drive_link.txt", $google_url . " => Exception: " . $ex->getMessage(), 'www-logs');
         }
         
 //        $try_old_method = true; //for testing only
-        if ($try_old_method) {
+        
+        try {
+            if ($try_old_method) {
             
-            write_logs("old_method_download_google_drive_link.txt", $google_url, 'www-logs');
-            
-            $file_url = "https://drive.google.com/uc?export=download&id=$file_id";
+                write_logs("old_method_download_google_drive_link.txt", $google_url, 'www-logs');
 
-            $response_headers = array_change_key_case(get_headers($file_url, TRUE));
+                $file_url = "https://drive.google.com/uc?export=download&id=$file_id";
 
-            if (@$_REQUEST['test'] == 1) {
-                echo $file_url;
-                echo "<pre>";
-                print_r($response_headers);
-                echo "</pre>";
-            }
+                $response_headers = array_change_key_case(get_headers($file_url, TRUE));
 
-            if (!$this->check_url_is_404($response_headers)) {
-                header("Location: $google_url");
-                exit;
-            }
-
-            $filename = "";
-            // Get data size
-            $data_size = 0;
-            // Get direct link
-            $direct_link = $file_url;
-            if (isset($response_headers['location']) && !empty($response_headers['location'])) {
-
-                $direct_link = $response_headers['location'];
-                if (isset($response_headers['content-length'])) {
-                    $data_size = $response_headers['content-length'];
+                if (@$_REQUEST['test'] == 1) {
+                    echo $file_url;
+                    echo "<pre>";
+                    print_r($response_headers);
+                    echo "</pre>";
                 }
-                // Get File Name
-                if (isset($response_headers["content-disposition"])) {
-                    // this catches filenames between Quotes
-                    if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
-                        $filename = $matches[1];
-                    }
-                    // if filename is not quoted, we take all until the next space
-                    else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
-                        $filename = $matches[1];
-                    }
+
+                if (!$this->check_url_is_404($response_headers)) {
+                    header("Location: $google_url");
+                    exit;
                 }
-                
-                if (!empty($filename)) {
-                    header('Content-Type: application/octet-stream');
-                    header("Content-Transfer-Encoding: Binary");
-                    header("Content-disposition: attachment; filename=\"" . $filename . "\"");
-                    header('Content-Transfer-Encoding: chunked'); //changed to chunked
-                    header('Expires: 0');
-                    if ($data_size) {
-                        header("Content-length: $data_size");
-                    } else {
+
+                $filename = "";
+                // Get data size
+                $data_size = 0;
+                // Get direct link
+                $direct_link = $file_url;
+                if (isset($response_headers['location']) && !empty($response_headers['location'])) {
+
+                    $direct_link = $response_headers['location'];
+                    if (isset($response_headers['content-length'])) {
+                        $data_size = $response_headers['content-length'];
+                    }
+                    // Get File Name
+                    if (isset($response_headers["content-disposition"])) {
+                        // this catches filenames between Quotes
+                        if (preg_match('/.*filename=[\'\"]([^\'\"]+)/', $response_headers["content-disposition"], $matches)) {
+                            $filename = $matches[1];
+                        }
+                        // if filename is not quoted, we take all until the next space
+                        else if (preg_match("/.*filename=([^ ]+)/", $response_headers["content-disposition"], $matches)) {
+                            $filename = $matches[1];
+                        }
+                    }
+                    
+                    if (empty($filename) || !$data_size) {
                         $url_info = "https://www.googleapis.com/drive/v3/files/$file_id?fields=name,size&key=" . DEVELOPER_KEY;
                         $file_info = json_decode(request_get($url_info), true);
+                        if (!$file_info) {
+                            $file_info = json_decode(request_get($url_info), true);
+                        }
                         if ($file_info) {
                             if (isset($file_info['size']) && !empty($file_info['size'])) {
                                 $data_size = $file_info['size'];
-                                header("Content-length: " . $file_info['size']);
+                            }
+                            if (isset($file_info['name']) && !empty($file_info['name'])) {
+                                $filename = $file_info['name'];
                             }
                         }
                     }
-                    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-                    header('Pragma: public');
-
-                    $this->downloadFile($direct_link, $filename, $data_size);
+                    
+                    if (!empty($filename)) {
+                        header('Content-Type: application/octet-stream');
+                        header("Content-Transfer-Encoding: Binary");
+                        header("Content-disposition: attachment; filename=\"" . $filename . "\"");
+                        header('Content-Transfer-Encoding: chunked'); //changed to chunked
+                        header('Expires: 0');
+                        if ($data_size) {
+                            header("Content-length: $data_size");
+                        }
+                        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                        header('Pragma: public');
+                        try {
+                            $this->downloadFile($direct_link, $filename, $data_size);
+                        } catch (Exception $ex) {
+                            header_remove();
+                            header("Location: $file_url");
+                            write_logs("error_download_google_drive_downloadFile.txt", $google_url . " => Exception: " . $ex->getMessage(), 'www-logs');
+                            exit;
+                        }
+                        
+                    } else {
+                        write_logs("error_show_gdrive_directlink.txt", "Missing File Name: " . $file_url . " => response_headers: " . json_encode($response_headers), 'www-logs');
+                        header("Location: $file_url");
+                        exit;
+                    }
                 } else {
+                    write_logs("error_show_gdrive_directlink.txt", "Missing location: " . $file_url . " => response_headers: " . json_encode($response_headers), 'www-logs');
                     header("Location: $file_url");
                     exit;
                 }
-            } else {
-                header("Location: $file_url");
-                exit;
             }
-        } 
+        } catch (Exception $ex) {
+            write_logs("try_old_method.txt", $google_url . " => Exception: " . $ex->getMessage(), 'www-logs');
+        }
+        
+        exit();
     }
 
     public function downloadFileGoogleAPI($fileID) {
@@ -300,16 +323,20 @@ Class Downloader {
 
             $url_info = "https://www.googleapis.com/drive/v3/files/$fileID?fields=name,size&key=" . DEVELOPER_KEY;
             
-            $file_info = json_decode(request_get($url_info), true);
-            if (!$file_info) {
-                $file_info = json_decode(request_get($url_info), true);
+            $temp_data = request_get($url_info);
+            $file_info = json_decode($temp_data, true);
+            if (!$file_info) {  //try again
+                $temp_data = request_get($url_info);
+                $file_info = json_decode($temp_data, true);
             }
             
             if ($file_info) {
                 if ($this->check_url_is_error($file_info)) {
+                    write_logs("check_url_is_error.txt", "Pos 1: " . $url_info . " => Temp Data: " . @$temp_data, 'www-logs');
                     return false;
                 }
             } else {
+                write_logs("check_url_is_error.txt", "Pos Error Cannot json parse: " . $url_info . " => Temp Data: " . @$temp_data, 'www-logs');
                 return false;
             }
 
@@ -361,22 +388,13 @@ Class Downloader {
         $newfname = DOWNLOAD_FOLDER . '/' . $filename;
 
         $google_client = getGoogleDriveClient();
-        $http = $google_client->authorize();
+        $drive_service = new Google_Service_Drive($google_client);
 
-        $chunkStart = 0;
-
-        while ($chunkStart < $data_size) {
-            $chunkEnd = $chunkStart + $this->chunkSizeBytes;
-            $response = $http->request(
-                    'GET', sprintf('/drive/v3/files/%s', $fileID), [
-                'query' => ['alt' => 'media'],
-                'headers' => [
-                    'Range' => sprintf('bytes=%s-%s', $chunkStart, $chunkEnd)
-                ]
-                ]
-            );
-            $chunkStart = $chunkEnd + 1;
-            echo $data_temp = $response->getBody()->getContents();
+        $response = $drive_service->files->get($fileID, array(
+                    'alt' => 'media' ));
+        
+        while (!$response->getBody()->eof()) {
+            echo $data_temp = $response->getBody()->read($this->chunkSizeBytes);
         }
         
         exit;
@@ -406,24 +424,15 @@ Class Downloader {
 
         $google_client = getGoogleDriveClient();
         $http = $google_client->authorize();
+        $drive_service = new Google_Service_Drive($google_client);
 
-        // Download in 1 MB chunks
-        $chunkStart = 0;
-
+        $response = $drive_service->files->get($fileID, array(
+                    'alt' => 'media' ));
+        
         $newf = fopen($newfname, 'wb');
         if ($newf) {
-            while ($chunkStart < $data_size) {
-                $chunkEnd = $chunkStart + $this->chunkSizeBytes;
-                $response = $http->request(
-                        'GET', sprintf('/drive/v3/files/%s', $fileID), [
-                    'query' => ['alt' => 'media'],
-                    'headers' => [
-                        'Range' => sprintf('bytes=%s-%s', $chunkStart, $chunkEnd)
-                    ]
-                    ]
-                );
-                $chunkStart = $chunkEnd + 1;
-                echo $data_temp = $response->getBody()->getContents();
+            while (!$response->getBody()->eof()) {
+                echo $data_temp = $response->getBody()->read($this->chunkSizeBytes);
                 fwrite($newf, $data_temp);
             }
         }
@@ -453,6 +462,8 @@ Class Downloader {
                 $this->dbModel->update_cache_status($cache_id, $newfsize);
             }
         }
+        
+        exit();
     }
 
 //  $type = 1: URL 

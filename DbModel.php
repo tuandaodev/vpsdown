@@ -8,7 +8,7 @@ require_once('config.php');
     
 class DbModel {
 
-    private $link;
+    private $link = null;
 
     public function __construct() {
         $this->link = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
@@ -16,7 +16,9 @@ class DbModel {
     }
     
     public function __destruct() {
-        mysqli_close($this->link);
+        if ($this->link != null) {
+            mysqli_close($this->link);
+        }
     }
     
     public function close() {
@@ -207,7 +209,7 @@ class DbModel {
     
     public function get_all_old_cache() {
 		
-        $query = "SELECT * FROM cache where updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL " . CACHE_DAY . " HOUR))";
+        $query = "SELECT * FROM cache where (updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL " . CACHE_DAY . " HOUR))) OR (status = 0 AND updated <= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 2 HOUR)))";
 		
         $result = mysqli_query($this->link, $query);
 		
