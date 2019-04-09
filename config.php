@@ -14,9 +14,9 @@ define('DB_HOST', 'localhost');
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
 
-define('DOMAIN', 'http://195.154.200.199/');
+define('DOMAIN', 'http://localhost:1111/vpsdown/');
 define('DOWNLOAD_FOLDER', 'cache_files');
-define('CACHE_DAY', 2); // by hour
+define('CACHE_DAY', 24); // by hour
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
