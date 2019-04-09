@@ -5,7 +5,7 @@ require_once('config.php');
  *
  * @author MT
  */
-
+    
 class DbModel {
 
     private $link;
